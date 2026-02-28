@@ -13,7 +13,7 @@ A project who take the open data of airbnb and use it to makes stats (training )
 - [X] Add README skeleton
 
 ## 3. Data Ingestion (Extract)
-- [ ] create also small scrap for this one  https://www.airroi.com/data-portal/markets
+- [X] create also small scrap for this one  https://www.airroi.com/data-portal/markets
 - [ ] monitor the run on the database
 - [ ] Handle re-runs (skip or overwrite deterministically)
 
