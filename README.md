@@ -2,13 +2,13 @@
 A project who take the open data of airbnb and use it to makes stats (training )
 
 ## 1. Data Source & Scope
-- [ ] Select cities in France from https://insideairbnb.com/fr/get-the-data/
-- [ ] Identify required datasets (listings, reviews, calendar, neighbourhoods)
-- [ ] Define batch frequency (daily batch simulated)
+- [X] Select cities in France from https://insideairbnb.com/fr/get-the-data/
+- [X] Identify required datasets (listings, reviews, calendar, neighbourhoods)
+- [x] Define batch frequency (daily batch simulated) weekly  batch sheel 
 
 ## 2. Repository & Project Setup
 - [ ] Define project structure (src/, data/, sql/, docs/)
-- [ ] Setup Python environment (requirements / pyproject)
+- [x] Setup Python environment (requirements / pyproject)
 - [X] Add .gitignore and .env.example
 - [X] Add README skeleton
 
@@ -18,25 +18,26 @@ A project who take the open data of airbnb and use it to makes stats (training )
 - [ ] Handle re-runs (skip or overwrite deterministically)
 
 ## 4. Raw Data Storage
-- [ ] Store raw files as-is on the server (CSV / gzip)
-- [ ] Keep ingestion metadata on the DB (file size, row count)
+- [x] Store raw files as-is on the server (CSV / gzip)
+- [x] Keep ingestion metadata on the DB (file size, row count)
 
 ## 5. Data Cleaning & Staging (Transform – step 1)
 - [ ] Type normalization (price, dates, booleans)
 - [ ] Handle missing values
-- [ ] Deduplicate records using business keys
+- [x] Deduplicate records using business keys
 - [ ] Store clean data in staging format (Parquet)
 
 ## 6. Data Quality & Monitoring
 - [ ] Compute data quality metrics per run:
-  - number of input/output rows
+  [x] number of input/output rows
+  [ ] deploying message into a monitoring
   - number of duplicates removed
   - percentage of null values per column
   - number of unique business keys
 - [ ] Store data quality metrics in a dedicated table
 
 ## 7. Database & Warehouse Modeling
-- [ ] Setup database (Postgres)
+- [x] Setup database (Postgres)
 - [ ] thinking about DB schema
 - [ ] Load clean data into warehouse tables
 

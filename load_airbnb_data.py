@@ -5,11 +5,15 @@ from typing import Union
 from sqlalchemy import create_engine
 import os
 from dotenv import load_dotenv
+from prometheus_client import CollectorRegistry, Gauge, Counter, push_to_gateway
 
 load_dotenv()
 
-SCRAPPING_DIR = Path("scrapping/downloads")
+SCRAPPING_DIR = Path("scraping/downloads")
 OUTPUT_DIR = Path("data/cleaned")
+
+PUSHGATEWAY_URL = os.getenv("PUSHGATEWAY_URL", "http://localhost:9091")
+JOB_NAME = "airbnb_scraping"
 
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -21,6 +25,9 @@ def get_csv_files_by_type():
         "past_calendar": [f for f in files if "Past_Calendar_Rates" in f.name],
         "future_calendar": [f for f in files if "Future_Calendar_Rates" in f.name],
     }
+
+def get_total_csv_files():
+    return len(list(SCRAPPING_DIR.glob("*.csv")))
 
 def load_and_deduplicate(csv_files, key_column: Union[str, list[str]] = "listing_id"):
     dfs = []
@@ -102,10 +109,48 @@ def load_to_postgres():
     engine.dispose()
     print(f"\nDonnées insérées dans PostgreSQL: {database}@{host}:{port}")
 
+def send_prometheus_metrics(total_csv_files, listings_count, reviews_count, past_calendar_count, future_calendar_count):
+    registry = CollectorRegistry()
+    
+    csv_files_collected = Gauge(
+        'scraping_csv_files_collected',
+        'Nombre de fichiers CSV collectés',
+        registry=registry
+    )
+    
+    data_loaded = Gauge(
+        'scraping_data_loaded_total',
+        'Nombre de lignes chargées en base par type',
+        ['table'],
+        registry=registry
+    )
+    
+    scraping_success = Gauge(
+        'scraping_success',
+        'Indique si le scraping est terminé avec succès',
+        registry=registry
+    )
+    
+    csv_files_collected.set(total_csv_files)
+    data_loaded.labels(table='listings').set(listings_count)
+    data_loaded.labels(table='reviews').set(reviews_count)
+    data_loaded.labels(table='past_calendar').set(past_calendar_count)
+    data_loaded.labels(table='future_calendar').set(future_calendar_count)
+    scraping_success.set(1)
+    
+    try:
+        push_to_gateway(PUSHGATEWAY_URL, job=JOB_NAME, registry=registry)
+        print(f"\nMétriques envoyées à Prometheus via Pushgateway: {PUSHGATEWAY_URL}")
+    except Exception as e:
+        print(f"\nErreur envoi métriques Prometheus: {e}")
+
 if __name__ == "__main__":
     print("=" * 50)
     print("CHARGEMENT ET DÉDOUBLONNAGE DES DONNÉES AIRBNB")
     print("=" * 50)
+    
+    total_csv_files = get_total_csv_files()
+    print(f"\nFichiers CSV collectés: {total_csv_files}")
     
     listings_df = load_listings()
     reviews_df = load_reviews()
@@ -123,9 +168,18 @@ if __name__ == "__main__":
     save_cleaned_data(listings_df, reviews_df, past_calendar_df, future_calendar_df)
     load_to_postgres()
     
+    send_prometheus_metrics(
+        total_csv_files=total_csv_files,
+        listings_count=len(listings_df),
+        reviews_count=len(reviews_df),
+        past_calendar_count=len(past_calendar_df),
+        future_calendar_count=len(future_calendar_df)
+    )
+    
     print("\n" + "=" * 50)
     print("FONCTIONS DISPONIBLES")
     print("=" * 50)
     print("- listings_df, reviews_df, past_calendar_df, future_calendar_df (DataFrames)")
     print("- save_cleaned_data() - sauvegarde les CSV dédoublonnés")
     print("- load_to_postgres() - charge tout en PostgreSQL")
+    print("- send_prometheus_metrics() - envoie métriques à Prometheus")

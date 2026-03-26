@@ -1,5 +1,25 @@
+x-airflow-common: &airflow-common
+  image: apache/airflow:2.7.1
+  environment:
+    - AIRFLOW__CORE__EXECUTOR=CeleryExecutor
+    - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@postgres_airflow/airflow
+    - AIRFLOW__CELERY__RESULT_BACKEND=db+postgresql://airflow:airflow@postgres_airflow/airflow
+    - AIRFLOW__CELERY__BROKER_URL=redis_airflow://:@redis_airflow:6379/0
+    - AIRFLOW__CORE__LOAD_EXAMPLES=false
+  volumes:
+    - ./dags:/opt/airflow/dags
+    - ./logs:/opt/airflow/logs
+    - ./plugins:/opt/airflow/plugins
+    - ./scripts:/opt/airflow/scripts # Pour que Airflow accède à tes scripts
+  user: "${AIRFLOW_UID:-50000}:0"
+  depends_on:
+    redis_airflow:
+      condition: service_healthy
+    postgres_airflow:
+      condition: service_healthy
+
 services:
-  postgres:
+  postgres_data:
     image: postgres:16
     container_name: airbnb_postgres
     environment:
@@ -10,6 +30,88 @@ services:
       - "${POSTGRES_PORT}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - monitoring
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: airbnb_prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+    networks:
+      - monitoring
+
+  pushgateway:
+    image: prom/pushgateway:latest
+    container_name: airbnb_pushgateway
+    ports:
+      - "9091:9091"
+    networks:
+      - monitoring
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: airbnb_grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - grafana_data:/var/lib/grafana
+    depends_on:
+      - prometheus
+    networks:
+      - monitoring
+
+  postgres_airflow:
+    image: postgres:13
+    environment:
+      - POSTGRES_USER=airflow
+      - POSTGRES_PASSWORD=airflow
+      - POSTGRES_DB=airflow
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U airflow"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+  redis_airflow:
+    image: redis:latest
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping | grep PONG"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  airflow-webserver:
+    <<: *airflow-common
+    command: webserver
+    ports:
+      - "8080:8080"
+      
+
+  airflow-scheduler:
+    <<: *airflow-common
+    command: scheduler
+
+  airflow-worker:
+    <<: *airflow-common
+    command: celery worker
+networks:
+  monitoring:
+    driver: bridge
 
 volumes:
   postgres_data:
+  prometheus_data:
+  grafana_data:
