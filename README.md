@@ -28,9 +28,9 @@ A project who take the open data of airbnb and use it to makes stats (training )
 - [ ] Store clean data in staging format (Parquet)
 
 ## 6. Data Quality & Monitoring
-- [ ] Compute data quality metrics per run:
+- [x] Compute data quality metrics per run:
   [x] number of input/output rows
-  [ ] deploying message into a monitoring
+  [x] deploying message into a monitoring
   - number of duplicates removed
   - percentage of null values per column
   - number of unique business keys
@@ -44,9 +44,9 @@ A project who take the open data of airbnb and use it to makes stats (training )
 ## 8. KPI Definition & Computation
 - [ ] Define KPI calculation logic
 - [ ] Compute KPI tables:
-  - Most common host first names
-  - Most positive reviewer first names
-  - Multi-listing hosts by first name
+  ~~- Most common host first names~~
+  ~~- Most post reviewer by ID~~ 
+  ~~- Multi-listing hosts by first name~~
   - Median price by neighbourhood
   - Median price by room type
   - (Optional) Availability rate by neighbourhood

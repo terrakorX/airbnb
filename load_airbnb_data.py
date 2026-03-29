@@ -9,7 +9,7 @@ from prometheus_client import CollectorRegistry, Gauge, Counter, push_to_gateway
 
 load_dotenv()
 
-SCRAPPING_DIR = Path("scraping/downloads")
+SCRAPPING_DIR = Path("scrapping/downloads")
 OUTPUT_DIR = Path("data/cleaned")
 
 PUSHGATEWAY_URL = os.getenv("PUSHGATEWAY_URL", "http://localhost:9091")
