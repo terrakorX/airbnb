@@ -44,13 +44,14 @@ A project who take the open data of airbnb and use it to makes stats (training )
 ## 8. KPI Definition & Computation
 - [ ] Define KPI calculation logic
 - [ ] Compute KPI tables:
-  ~~- Most common host first names~~
-  ~~- Most post reviewer by ID~~ 
-  ~~- Multi-listing hosts by first name~~
-  - Median price by neighbourhood
-  - Median price by room type
-  - (Optional) Availability rate by neighbourhood
-  - (Optional) Number of reviews per listing
+  -~~ Most common host first names~~
+  -~~ Most post reviewer by ID~~ 
+  -~~ Multi-listing hosts by first name~~
+  - ~~Median price by city~~
+  - ~~Median price by number of beds type by city~~
+  - ~~Median price by type of home type by city~~
+  - ~~(Optional) Availability rate by neighbourhood~~
+  - ~~(Optional) Number of reviews per room type~~
 
 ## 9. Pipeline Orchestration
 - [ ] Create a single pipeline entrypoint (run script)

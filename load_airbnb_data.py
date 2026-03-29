@@ -47,6 +47,7 @@ def load_and_deduplicate(csv_files, key_column: Union[str, list[str]] = "listing
     original_count = len(combined)
     
     combined = combined.drop_duplicates(subset=key_column, keep="last")
+    combined = combined[pd.to_numeric(combined[key_column], errors='coerce').notna()]
     deduplicated_count = len(combined)
     
     print(f"  Fichiers: {len(csv_files)}")
